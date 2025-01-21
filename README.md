@@ -27,7 +27,7 @@ Follow these steps to set up and run the FarmAssist project on your local machin
 
 2. Navigate to the backend directory:
    ```bash
-   cd farm-assist/backend
+   cd backend
    ```
 
 3. Install the dependencies:
