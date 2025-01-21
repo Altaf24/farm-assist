@@ -42,7 +42,7 @@ Follow these steps to set up and run the FarmAssist project on your local machin
 
 5. Open a new terminal and navigate to the frontend directory:
    ```bash
-   cd farm-assist/frontend
+   cd frontend
    ```
 
 6. Install the frontend dependencies:
