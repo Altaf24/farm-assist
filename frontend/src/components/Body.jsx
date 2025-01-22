@@ -1,9 +1,14 @@
 import React from 'react'
+import NavBar from './NavBar'
+import Hero from './Hero'
+import Footer from './Footer'
 
 const Body = () => {
   return (
     <div>
-      <h1>Hello Farmers </h1>
+      <NavBar/>
+      <Hero/>
+      <Footer/>
     </div>
   )
 }
