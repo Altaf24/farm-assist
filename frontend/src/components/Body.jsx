@@ -2,13 +2,15 @@ import React from 'react'
 import NavBar from './NavBar'
 import Hero from './Hero'
 import Footer from './Footer'
+import Chatbot from './Chatbot'
 
 const Body = () => {
   return (
     <div>
-      <NavBar/>
+      {/* <NavBar/> */}
       <Hero/>
       <Footer/>
+      <Chatbot />
     </div>
   )
 }
