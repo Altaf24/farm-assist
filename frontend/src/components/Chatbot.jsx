@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+//import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
