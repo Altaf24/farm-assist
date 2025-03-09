@@ -7,6 +7,8 @@ import Store from './components/Store'
 import PredictDisease from './components/PredictDisease'
 import SsoCallback from './components/SsoCallback' // We'll create this next
 
+import CropPrediction from './components/solutions/crop-prediction'
+
 function App() {
   return (
     <>
@@ -18,6 +20,7 @@ function App() {
         <Route path="/store" element={<Store />} />
         <Route path="/predictdisease" element={<PredictDisease />} />
         <Route path="/sso-callback" element={<SsoCallback />} />
+        <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
       </Routes>
     </>
   )
