@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { Menu, X, Leaf, ChevronDown, Search } from "lucide-react"
+import { useUser, UserButton } from "@clerk/clerk-react"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const { isSignedIn, user } = useUser()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +47,9 @@ const NavBar = () => {
           <div className="hidden md:flex md:items-center md:space-x-8">
             <div className="relative group">
               <button
-                className={`flex items-center text-sm font-medium ${scrolled ? "text-gray-700" : "text-white"} hover:text-green-500 transition-colors`}
+                className={`flex items-center text-sm font-medium ${
+                  scrolled ? "text-gray-700" : "text-white"
+                } hover:text-green-500 transition-colors`}
               >
                 Solutions
                 <ChevronDown className="ml-1 h-4 w-4" />
@@ -89,7 +93,9 @@ const NavBar = () => {
 
             <div className="relative group">
               <button
-                className={`flex items-center text-sm font-medium ${scrolled ? "text-gray-700" : "text-white"} hover:text-green-500 transition-colors`}
+                className={`flex items-center text-sm font-medium ${
+                  scrolled ? "text-gray-700" : "text-white"
+                } hover:text-green-500 transition-colors`}
               >
                 Resources
                 <ChevronDown className="ml-1 h-4 w-4" />
@@ -142,26 +148,35 @@ const NavBar = () => {
           {/* Right side buttons */}
           <div className="hidden md:flex md:items-center md:space-x-4">
             <button
-              className={`p-2 rounded-full ${scrolled ? "text-gray-600 hover:bg-gray-100" : "text-white hover:bg-white/10"} transition-colors`}
+              className={`p-2 rounded-full ${
+                scrolled ? "text-gray-600 hover:bg-gray-100" : "text-white hover:bg-white/10"
+              } transition-colors`}
             >
               <Search className="h-5 w-5" />
             </button>
 
-            <Link
-              to="/login"
-              className={`px-4 py-2 text-sm font-medium ${
-                scrolled ? "text-gray-700 hover:text-green-700" : "text-white hover:text-green-300"
-              } transition-colors`}
-            >
-              Log in
-            </Link>
-
-            <Link
-              to="/signup"
-              className="px-5 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5"
-            >
-              Get Started
-            </Link>
+            {isSignedIn ? (
+              <div className="flex items-center space-x-4">
+                <UserButton />
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className={`px-4 py-2 text-sm font-medium ${
+                    scrolled ? "text-gray-700 hover:text-green-700" : "text-white hover:text-green-300"
+                  } transition-colors`}
+                >
+                  Log in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-5 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md hover:shadow-lg transform transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -235,18 +250,27 @@ const NavBar = () => {
           <div className="px-5 py-2 text-base font-medium text-gray-500 border-t border-gray-200 mt-4 pt-4">
             Account
           </div>
-          <Link
-            to="/login"
-            className="block px-5 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700"
-          >
-            Log in
-          </Link>
-          <Link
-            to="/signup"
-            className="block mx-5 my-3 px-5 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-center shadow-md"
-          >
-            Get Started
-          </Link>
+          {isSignedIn ? (
+            <div className="px-5 py-3 text-base font-medium text-gray-700">
+              Signed in as {user.firstName}
+              <UserButton />
+            </div>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="block px-5 py-3 rounded-md text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700"
+              >
+                Log in
+              </Link>
+              <Link
+                to="/signup"
+                className="block mx-5 my-3 px-5 py-3 rounded-md text-base font-medium text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-center shadow-md"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
@@ -254,4 +278,3 @@ const NavBar = () => {
 }
 
 export default NavBar
-
