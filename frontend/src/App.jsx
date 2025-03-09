@@ -5,8 +5,7 @@ import SignUp from './components/SignUp'
 import Login from './components/Login'
 import Store from './components/Store'
 import PredictDisease from './components/PredictDisease'
-import SsoCallback from './components/SsoCallback' // We'll create this next
-
+import SsoCallback from './components/SsoCallback'
 import CropPrediction from './components/solutions/crop-prediction'
 
 function App() {
