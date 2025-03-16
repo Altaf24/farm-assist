@@ -1,28 +1,86 @@
-"use client"
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { Menu, X, Leaf, ChevronDown, Search } from "lucide-react"
-import { useUser, UserButton } from "@clerk/clerk-react"
+// import { useUser, UserButton } from "@clerk/clerk-react"
+  "use client"
 
-const NavBar = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const { isSignedIn, user } = useUser()
+  import { useState, useEffect } from "react"
+  import { Link } from "react-router-dom"
+  import { Menu, X, Leaf, ChevronDown, Search, User } from "lucide-react"
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true)
+  const NavBar = () => {
+    const [isOpen, setIsOpen] = useState(false)
+    const [scrolled, setScrolled] = useState(false)
+    const [isSignedIn, setIsSignedIn] = useState(false)
+    const [userData, setUserData] = useState(null)
+
+    // Function to check authentication status
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem('token')
+      const user = localStorage.getItem('user')
+    
+      if (token && user) {
+        setIsSignedIn(true)
+        try {
+          setUserData(JSON.parse(user))
+        } catch (e) {
+          console.error("Error parsing user data:", e)
+        }
       } else {
-        setScrolled(false)
+        setIsSignedIn(false)
+        setUserData(null)
       }
     }
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    useEffect(() => {
+      // Check auth status on initial load
+      checkAuthStatus()
 
+      // Set up scroll event listener
+      const handleScroll = () => {
+        if (window.scrollY > 10) {
+          setScrolled(true)
+        } else {
+          setScrolled(false)
+        }
+      }
+      window.addEventListener("scroll", handleScroll)
+
+      // Create a custom event listener for auth changes
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'token' || event.key === 'user') {
+          checkAuthStatus()
+        }
+      })
+
+      // Check auth status every time component is focused
+      window.addEventListener('focus', checkAuthStatus)
+
+      // Clean up event listeners
+      return () => {
+        window.removeEventListener("scroll", handleScroll)
+        window.removeEventListener('storage', checkAuthStatus)
+        window.removeEventListener('focus', checkAuthStatus)
+      }
+    }, [])
+
+    // Function to handle logout
+    const handleLogout = () => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      setIsSignedIn(false)
+      setUserData(null)
+      // Optionally redirect to home or login page
+      window.location.href = '/'
+    }
+
+    // Get user initials for the profile circle
+    const getUserInitials = () => {
+      if (!userData) return "U"
+    
+      const firstName = userData.firstName || ""
+      const lastName = userData.lastName || ""
+    
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+    }
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -45,6 +103,7 @@ const NavBar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-8">
+            {/* Navigation items... */}
             <div className="relative group">
               <button
                 className={`flex items-center text-sm font-medium ${
@@ -156,8 +215,43 @@ const NavBar = () => {
             </button>
 
             {isSignedIn ? (
-              <div className="flex items-center space-x-4">
-                <UserButton />
+              <div className="flex items-center space-x-4 relative group">
+                {/* Custom profile circle instead of UserButton */}
+                <button className="h-10 w-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center text-white font-medium shadow-md hover:shadow-lg transition-all">
+                  {getUserInitials()}
+                </button>
+                
+                {/* Dropdown menu for profile */}
+                <div className="absolute right-0 w-48 mt-2 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-10 top-full">
+                  <div className="py-1">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">
+                        {userData?.firstName} {userData?.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {userData?.email}
+                      </p>
+                    </div>
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Your Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Settings
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
@@ -251,9 +345,40 @@ const NavBar = () => {
             Account
           </div>
           {isSignedIn ? (
-            <div className="px-5 py-3 text-base font-medium text-gray-700">
-              Signed in as {user.firstName}
-              <UserButton />
+            <div className="px-5 py-3">
+              <div className="flex items-center">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center text-white font-medium shadow-md">
+                  {getUserInitials()}
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-900">
+                    {userData?.firstName} {userData?.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {userData?.email}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 space-y-1">
+                <Link
+                  to="/profile"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700"
+                >
+                  Your Profile
+                </Link>
+                <Link
+                  to="/settings"
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-green-50 hover:text-green-700"
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                >
+                  Sign out
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -277,4 +402,6 @@ const NavBar = () => {
   )
 }
 
-export default NavBar
+export default NavBar;
+
+                

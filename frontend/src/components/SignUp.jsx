@@ -1,113 +1,156 @@
 "use client"
+  import { useState } from "react"
+  import { useNavigate } from "react-router-dom";
+  import { BASE_URL } from "../utils/constants";
+  import { Link } from "react-router-dom"
+  import { Eye, EyeOff, Leaf, User, Mail, Lock, Check, ArrowRight } from "lucide-react"
+  import axios from 'axios';
 
-import { useState } from "react"
-import { Link } from "react-router-dom"
-import { Eye, EyeOff, Leaf, User, Mail, Lock, Check, ArrowRight } from "lucide-react"
-
-export default function SignupForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [showPassword, setShowPassword] = useState(false)
-  const [agreeToTerms, setAgreeToTerms] = useState(false)
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    farmType: "",
-  })
-
-  const farmTypes = [
-    { value: "crop", label: "Crop Farming", icon: "🌾" },
-    { value: "livestock", label: "Livestock Farming", icon: "🐄" },
-    { value: "mixed", label: "Mixed Farming", icon: "🚜" },
-    { value: "organic", label: "Organic Farming", icon: "🌱" },
-    { value: "other", label: "Other", icon: "🌿" },
-  ]
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value,
+  export default function SignupForm() {
+    const [isLoading, setIsLoading] = useState(false)
+    const [errors, setErrors] = useState({})
+    const [showPassword, setShowPassword] = useState(false)
+    const [agreeToTerms, setAgreeToTerms] = useState(false)
+    const [formData, setFormData] = useState({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      farmType: "",
     })
 
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: null,
+    const navigate = useNavigate();
+
+    const farmTypes = [
+      { value: "crop", label: "Crop Farming", icon: "🌾" },
+      { value: "livestock", label: "Livestock Farming", icon: "🐄" },
+      { value: "mixed", label: "Mixed Farming", icon: "🚜" },
+      { value: "organic", label: "Organic Farming", icon: "🌱" },
+      { value: "other", label: "Other", icon: "🌿" },
+    ]
+
+    const handleChange = (e) => {
+      const { name, value } = e.target
+      setFormData({
+        ...formData,
+        [name]: value,
       })
-    }
-  }
 
-  const validateForm = () => {
-    const newErrors = {}
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required"
-    }
-
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = "Last name is required"
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors({
+          ...errors,
+          [name]: null,
+        })
+      }
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required"
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
+    const validateForm = () => {
+      const newErrors = {}
+
+      if (!formData.firstName.trim()) {
+        newErrors.firstName = "First name is required"
+      }
+
+      if (!formData.lastName.trim()) {
+        newErrors.lastName = "Last name is required"
+      }
+
+      if (!formData.email) {
+        newErrors.email = "Email is required"
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = "Email is invalid"
+      }
+
+      if (!formData.password) {
+        newErrors.password = "Password is required"
+      } else if (formData.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters"
+      }
+
+      if (!formData.farmType) {
+        newErrors.farmType = "Farm type is required"
+      }
+
+      if (!agreeToTerms) {
+        newErrors.terms = "You must agree to the terms and conditions"
+      }
+
+      return newErrors
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required"
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-    }
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      setIsLoading(true);
+    
+      const newErrors = validateForm();
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setIsLoading(false);
+        return;
+      }
+    
+      try {
+        console.log("Sending signup request to:", `${BASE_URL}/signup`);
+        console.log("With data:", formData);
+        
+        // Use axios for API call with proper error handling
+        const response = await axios.post(
+          `${BASE_URL}/signup`,
+          formData,
+          { 
+            withCredentials: true,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+    
+        console.log("Signup response:", response.data);
+        
+        // After successful signup, perform login
+        try {
+          const loginRes = await axios.post(
+            `${BASE_URL}/login`,
+            {
+              email: formData.email,
+              password: formData.password,
+            },
+            { withCredentials: true }
+          );
+          
+          console.log("Login response:", loginRes.data);
+          
+          // Store user data in localStorage
+          localStorage.setItem('token', loginRes.data.token);
+          localStorage.setItem('user', JSON.stringify(loginRes.data.user));
+          
+          // Navigate to the dashboard
+          navigate('/');
+        } catch (loginErr) {
+          console.error("Login error:", loginErr);
+          setErrors({ 
+            form: loginErr.response?.data?.message || "Account created but login failed. Please try logging in manually." 
+          });
+          navigate('/login');
+        }
+      } catch (error) {
+        console.error("Signup error details:", {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status
+        });
+        
+        setErrors({ 
+          form: error.response?.data?.message || 
+                `Failed to create account: ${error.message}. Please try again.` 
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
 
-    if (!formData.farmType) {
-      newErrors.farmType = "Farm type is required"
-    }
-
-    if (!agreeToTerms) {
-      newErrors.terms = "You must agree to the terms and conditions"
-    }
-
-    return newErrors
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    const newErrors = validateForm()
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Here you would normally make an API call to your backend
-      console.log("Signup submitted:", formData)
-
-      // If signup is successful, you can redirect the user
-      // window.location.href = "/dashboard";
-
-      // For demo purposes, we'll just show a success message
-      alert("Account created successfully! Redirecting to dashboard...")
-    } catch (error) {
-      console.error("Signup error:", error)
-      setErrors({
-        form: "Failed to create account. Please try again later.",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-800 relative overflow-hidden pt-32 pb-12">
@@ -269,31 +312,32 @@ export default function SignupForm() {
                     Type of Farming
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-                    {farmTypes.map((type) => (
-                      <div key={type.value}>
-                        <input
-                          type="radio"
-                          id={`farmType-${type.value}`}
-                          name="farmType"
-                          value={type.value}
-                          className="sr-only"
-                          checked={formData.farmType === type.value}
-                          onChange={handleChange}
-                        />
-                        <label
-                          htmlFor={`farmType-${type.value}`}
-                          className={`flex items-center p-3 border ${
-                            formData.farmType === type.value
-                              ? "border-green-500 bg-green-50"
-                              : "border-gray-300 hover:bg-gray-50"
-                          } rounded-lg cursor-pointer transition-colors`}
-                        >
-                          <span className="text-xl mr-2">{type.icon}</span>
-                          <span className="text-sm font-medium text-gray-900">{type.label}</span>
-                          {formData.farmType === type.value && <Check className="ml-auto h-5 w-5 text-green-500" />}
-                        </label>
-                      </div>
-                    ))}
+                  {farmTypes.map((type) => (
+  <div key={type.value}>
+    <input
+      type="radio"
+      id={`farmType-${type.value}`}
+      name="farmType"
+      value={type.value}
+      className="sr-only"
+      checked={formData.farmType === type.value}
+      onChange={handleChange}
+    />
+    <label
+      htmlFor={`farmType-${type.value}`}
+      className={`flex items-center p-3 border ${
+        formData.farmType === type.value
+          ? "border-green-500 bg-green-50"
+          : "border-gray-300 hover:bg-gray-50"
+      } rounded-lg cursor-pointer transition-colors`}
+    >
+      <span className="text-xl mr-2">{type.icon}</span>
+      <span className="text-sm font-medium text-gray-900">{type.label}</span>
+      {formData.farmType === type.value && <Check className="ml-auto h-5 w-5 text-green-500" />}
+    </label>
+  </div>
+))}
+
                   </div>
                   {errors.farmType && <p className="mt-1 text-sm text-red-600">{errors.farmType}</p>}
                 </div>
@@ -422,4 +466,3 @@ export default function SignupForm() {
     </div>
   )
 }
-
