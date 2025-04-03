@@ -521,7 +521,7 @@ return (
             <div className="absolute left-0 w-56 mt-2 origin-top-left bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2 z-10">
               <div className="py-2 p-3 space-y-1">
                 <Link
-                  to="/solutions/PredictDiseases"
+                  to="/solutions/PredictDisease"
                   className="block px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
                   Disease Prediction & Analysis
