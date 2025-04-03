@@ -1,4 +1,4 @@
-import { Route, Routes } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/NavBar'
 import Body from './components/Body'
 import SignUp from './components/SignUp'
@@ -9,6 +9,10 @@ import SsoCallback from './components/SsoCallback'
 import { Provider } from 'react-redux'
 import appStore from './utils/userSlice'
 import CropPrediction from './components/solutions/crop-prediction'
+import TractorBooking from './components/TractorBooking'
+import MyBookings from './components/MyBookings'
+import RegisterTractor from './components/RegisterTractor'
+import TractorPricing from './components/TractorPricing'
 
 export default function App() {
   return (
@@ -23,6 +27,10 @@ export default function App() {
           <Route path="/predictdisease" element={<PredictDisease />} />
           <Route path="/sso-callback" element={<SsoCallback />} />
           <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
+          <Route path="/tractor/book-now" element={<TractorBooking/>}/>
+          <Route path="/tractor/my-bookings" element={<MyBookings/>}/>
+          <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
+          <Route path="/tractor/pricing" element={<TractorPricing/>}/>
         </Routes>
       </Provider>
     </>
