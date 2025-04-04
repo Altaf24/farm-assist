@@ -4,7 +4,7 @@ import Body from './components/Body'
 import SignUp from './components/SignUp'
 import Login from './components/Login'
 import Store from './components/Store'
-import PredictDisease from './components/PredictDisease'
+import PredictDisease from './components/solutions/PredictDisease'
 import SsoCallback from './components/SsoCallback'
 import { Provider } from 'react-redux'
 import appStore from './utils/userSlice'
@@ -24,7 +24,7 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<Login />} />
           <Route path="/store" element={<Store />} />
-          <Route path="/predictdisease" element={<PredictDisease />} />
+          <Route path="/solutions/predictdisease" element={<PredictDisease />} />
           <Route path="/sso-callback" element={<SsoCallback />} />
           <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
           <Route path="/tractor/book-now" element={<TractorBooking/>}/>
