@@ -13,6 +13,7 @@ import TractorBooking from './components/TractorBooking'
 import MyBookings from './components/MyBookings'
 import RegisterTractor from './components/RegisterTractor'
 import TractorPricing from './components/TractorPricing'
+import BookingHistory from './components/BookingHistory'
 
 export default function App() {
   return (
@@ -28,7 +29,7 @@ export default function App() {
           <Route path="/sso-callback" element={<SsoCallback />} />
           <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
           <Route path="/tractor/book-now" element={<TractorBooking/>}/>
-          <Route path="/tractor/my-bookings" element={<MyBookings/>}/>
+          <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
         </Routes>

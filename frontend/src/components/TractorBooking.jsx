@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Tractor, Filter, ChevronDown, Star, ArrowRight } from 'lucide-react';
+import axios from 'axios';
+
+const BASE_URL = "http://localhost:56789";
 
 const TractorBooking = () => {
   const [location, setLocation] = useState('');
@@ -11,98 +14,86 @@ const TractorBooking = () => {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [tractors, setTractors] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Dummy tractor data
-  const dummyTractors = [
-    {
-      id: 1,
-      name: "John Deere 5E Series",
-      type: "medium",
-      horsepower: 75,
-      hourlyRate: 450,
-      location: "Amritsar, Punjab",
-      distance: 3.2,
-      rating: 4.8,
-      reviews: 124,
-      image: "https://www.deere.com/assets/images/region-4/products/tractors/5e-series/5075e_r4f009614_rrd_large_a98236e5e8e9e301b1f1e5d0f3b5f5c5c5e2e9d9.jpg",
-      features: ["GPS Navigation", "Air Conditioned Cabin", "Implements Available"],
-      available: true
-    },
-    {
-      id: 2,
-      name: "Mahindra 575 DI",
-      type: "medium",
-      horsepower: 45,
-      hourlyRate: 350,
-      location: "Ludhiana, Punjab",
-      distance: 5.7,
-      rating: 4.5,
-      reviews: 89,
-      image: "https://www.mahindratractor.com/images/Gallery/575-DI-XP-PLUS/575-DI-XP-PLUS-1.png",
-      features: ["Power Steering", "Adjustable Seat", "Dual Clutch"],
-      available: true
-    },
-    {
-      id: 3,
-      name: "Sonalika Sikandar DI 750 III",
-      type: "heavy",
-      horsepower: 75,
-      hourlyRate: 550,
-      location: "Jalandhar, Punjab",
-      distance: 8.1,
-      rating: 4.7,
-      reviews: 67,
-      image: "https://www.sonalika.com/media/1ufnwcgz/sikander-dx-55.png",
-      features: ["4WD", "Digital Dashboard", "Heavy Duty Hydraulics"],
-      available: true
-    },
-    {
-      id: 4,
-      name: "New Holland 3600-2",
-      type: "light",
-      horsepower: 35,
-      hourlyRate: 300,
-      location: "Patiala, Punjab",
-      distance: 4.3,
-      rating: 4.3,
-      reviews: 52,
-      image: "https://www.newholland.com/apac/en-in/products/tractors/3600-2-all-rounder-plus-series/3600-2-all-rounder-plus-series-overview/_jcr_content/root/teaser.coreimg.jpeg/1679995266247/3600-2-all-rounder-plus-series-overview.jpeg",
-      features: ["Fuel Efficient", "Easy Maintenance", "Compact Design"],
-      available: false
-    },
-    {
-      id: 5,
-      name: "Kubota MU5501",
-      type: "heavy",
-      horsepower: 55,
-      hourlyRate: 500,
-      location: "Bathinda, Punjab",
-      distance: 10.5,
-      rating: 4.9,
-      reviews: 43,
-      image: "https://www.kubota.co.in/product/tractor/img/mu5501/mu5501_main.png",
-      features: ["Japanese Technology", "Low Noise", "High Torque"],
-      available: true
-    }
-  ];
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate API call to fetch tractors
-    setTimeout(() => {
-      setTractors(dummyTractors);
+    fetchTractors();
+  }, [tractorType]);
+
+  const fetchTractors = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Build query parameters
+      const params = new URLSearchParams();
+      if (tractorType !== 'all') {
+        params.append('type', tractorType);
+      }
+      params.append('available', 'true');
+      if (location) {
+        params.append('location', location);
+      }
+
+      const response = await axios.get(`${BASE_URL}/tractors?${params.toString()}`);
+      setTractors(response.data);
+    } catch (err) {
+      console.error('Error fetching tractors:', err);
+      setError('Failed to load tractors. Please try again later.');
+    } finally {
       setIsLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const handleSearch = () => {
+    fetchTractors();
+  };
+
+  const handleBookNow = async (tractorId) => {
+    try {
+      // Check if user is logged in (you'll need to implement auth state management)
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Please login to book a tractor');
+        // Redirect to login page
+        return;
+      }
+
+      // Validate inputs
+      if (!date || !time || !location) {
+        alert('Please fill in all required fields (date, time, and location)');
+        return;
+      }
+
+      // Create booking
+      const response = await axios.post(
+        `${BASE_URL}/bookings`,
+        {
+          tractorId,
+          date,
+          startTime: time,
+          duration: parseInt(duration),
+          location
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          withCredentials: true
+        }
+      );
+
+      alert(`Booking confirmed! Total price: ₹${response.data.totalPrice}`);
+      // Redirect to bookings page or show confirmation
+    } catch (err) {
+      console.error('Error booking tractor:', err);
+      alert(err.response?.data?.message || 'Failed to book tractor. Please try again.');
+    }
+  };
 
   const filteredTractors = tractors.filter(tractor => 
     (tractorType === 'all' || tractor.type === tractorType) &&
     tractor.available
   );
-
-  const handleBookNow = (tractorId) => {
-    // In a real app, this would navigate to a confirmation page or make an API call
-    alert(`Booking confirmed for tractor ID: ${tractorId}`);
-  };
 
   return (
     <div className="pt-24 pb-16 min-h-screen bg-gray-50">
@@ -181,6 +172,16 @@ const TractorBooking = () => {
             </div>
           </div>
           
+          {/* Search Button */}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleSearch}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              Search Tractors
+            </button>
+          </div>
+          
           {/* Filters */}
           <div className="mt-4">
             <button 
@@ -213,6 +214,17 @@ const TractorBooking = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tractors List */}
         <div className="space-y-6">
           {isLoading ? (
@@ -228,7 +240,7 @@ const TractorBooking = () => {
             </div>
           ) : (
             filteredTractors.map((tractor) => (
-              <div key={tractor.id} className="bg-white rounded-xl shadow-md overflow-hidden">
+              <div key={tractor._id} className="bg-white rounded-xl shadow-md overflow-hidden">
                 <div className="md:flex">
                   <div className="md:flex-shrink-0">
                     <img 
@@ -272,7 +284,7 @@ const TractorBooking = () => {
                     
                     <div className="mt-6 flex justify-end">
                       <button
-                        onClick={() => handleBookNow(tractor.id)}
+                        onClick={() => handleBookNow(tractor._id)}
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                       >
                         Book Now
