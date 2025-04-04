@@ -19,7 +19,7 @@ export default function App() {
   return (
     <>
       <Navbar />
-      <Provider store={appStore}>
+     
         <Routes>
           <Route path="/" element={<Body />} />
           <Route path="/signup" element={<SignUp />} />
@@ -33,7 +33,7 @@ export default function App() {
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
         </Routes>
-      </Provider>
+   
     </>
   )
 }

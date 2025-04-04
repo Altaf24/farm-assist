@@ -124,7 +124,7 @@
           // Store user data in localStorage
           localStorage.setItem('token', loginRes.data.token);
           localStorage.setItem('user', JSON.stringify(loginRes.data.user));
-          
+          window.dispatchEvent(new Event('authChanged'));
           // Navigate to the dashboard
           navigate('/');
         } catch (loginErr) {

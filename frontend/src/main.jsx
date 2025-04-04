@@ -1,11 +1,15 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import './index.css';
-import App from './App.jsx';
-import { ClerkProvider } from '@clerk/clerk-react';
-import { BrowserRouter, useNavigate } from 'react-router-dom';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { ClerkProvider } from "@clerk/clerk-react";
+import { BrowserRouter, useNavigate } from "react-router-dom";
+import { Provider } from "react-redux";
+import appStore from "./utils/userSlice";
 
-const PUBLISHABLE_KEY = "pk_test_ZXhjaXRlZC1kcnVtLTU4LmNsZXJrLmFjY291bnRzLmRldiQ"; // Replace with your key
+
+const PUBLISHABLE_KEY =
+  "pk_test_ZXhjaXRlZC1kcnVtLTU4LmNsZXJrLmFjY291bnRzLmRldiQ"; // Replace with your key
 
 if (!PUBLISHABLE_KEY) {
   throw new Error("Missing Publishable Key");
@@ -14,24 +18,25 @@ if (!PUBLISHABLE_KEY) {
 // Define the appearance object for customizing Clerk components
 const appearance = {
   variables: {
-    colorPrimary: '#611BBD', // Custom primary color (e.g., purple)
-    colorText: '#333',       // Text color
-    fontFamily: 'Inter, sans-serif', // Custom font
+    colorPrimary: "#611BBD", // Custom primary color (e.g., purple)
+    colorText: "#333", // Text color
+    fontFamily: "Inter, sans-serif", // Custom font
   },
   elements: {
-    formButtonPrimary: {     // Style the primary button
-      backgroundColor: '#611BBD',
-      color: '#fff',
-      fontSize: '14px',
-      textTransform: 'none',
-      '&:hover': {
-        backgroundColor: '#49247A', // Darker shade on hover
+    formButtonPrimary: {
+      // Style the primary button
+      backgroundColor: "#611BBD",
+      color: "#fff",
+      fontSize: "14px",
+      textTransform: "none",
+      "&:hover": {
+        backgroundColor: "#49247A", // Darker shade on hover
       },
     },
   },
   layout: {
-    socialButtonsPlacement: 'bottom', // Place social buttons below the form
-    logoPlacement: 'inside',          // Position the logo inside the form
+    socialButtonsPlacement: "bottom", // Place social buttons below the form
+    logoPlacement: "inside", // Position the logo inside the form
   },
 };
 
@@ -50,12 +55,14 @@ function ClerkProviderWithNavigate({ children }) {
   );
 }
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <BrowserRouter>
-      <ClerkProviderWithNavigate>
-        <App />
-      </ClerkProviderWithNavigate>
-    </BrowserRouter>
+    <Provider store={appStore}>
+      <BrowserRouter>
+        <ClerkProviderWithNavigate>
+          <App />
+        </ClerkProviderWithNavigate>
+      </BrowserRouter>
+    </Provider>
   </StrictMode>
 );

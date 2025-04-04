@@ -405,7 +405,8 @@
 // export default NavBar;
 
                 // import { useUser, UserButton } from "@clerk/clerk-react"
-"use client"
+
+                "use client"
 
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
@@ -421,6 +422,8 @@ const NavBar = () => {
   const checkAuthStatus = () => {
     const token = localStorage.getItem('token')
     const user = localStorage.getItem('user')
+
+ 
   
     if (token && user) {
       setIsSignedIn(true)
@@ -450,6 +453,14 @@ const NavBar = () => {
     }
     window.addEventListener("scroll", handleScroll)
 
+
+    const handleAuthChange = () => {
+      checkAuthStatus();
+    };
+
+    window.addEventListener("authChanged", handleAuthChange);
+
+
     // Create a custom event listener for auth changes
     window.addEventListener('storage', (event) => {
       if (event.key === 'token' || event.key === 'user') {
@@ -465,6 +476,7 @@ const NavBar = () => {
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener('storage', checkAuthStatus)
       window.removeEventListener('focus', checkAuthStatus)
+      window.removeEventListener("authChanged", handleAuthChange);
     }
   }, [])
 
