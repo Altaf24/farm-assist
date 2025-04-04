@@ -7,62 +7,91 @@ import { BASE_URL } from "../utils/constants";
 import { addUser } from "../utils/userSlice";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [isLoginForm, setIsLoginForm] = useState(true);
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    farmType: "crop", // Default value
+  });
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      const res = await axios.post(
-        `${BASE_URL}/login`,
-        {
-          email,
-          password,
-        },
-        { withCredentials: true }
-      );
-      dispatch(addUser(res.data));
-      return navigate("/");
-    } catch (err) {
-      setError(err?.response?.data || "Something went wrong");
-    }
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const handleSignUp = async () => {
+  const handleLogin = async () => {
     try {
-      const res = await axios.post(
-        `${BASE_URL}/signup`,
-        { 
-          firstName, 
-          lastName, 
-          email,
-          password 
-        },
-        { withCredentials: true }
-      );
-      
-      // After successful signup, perform login
       const loginRes = await axios.post(
         `${BASE_URL}/login`,
         {
-          email,
-          password,
+          email: formData.email,
+          password: formData.password,
         },
         { withCredentials: true }
       );
       
-      dispatch(addUser(loginRes.data));
-      return navigate("/");
-    } catch (err) {
-      setError(err?.response?.data || "Something went wrong");
+      console.log("Login response:", loginRes.data);
+      
+      // Store user data in localStorage
+      localStorage.setItem('token', loginRes.data.token);
+      localStorage.setItem('user', JSON.stringify(loginRes.data.user));
+      
+      // Dispatch user to Redux store
+      dispatch(addUser(loginRes.data.user));
+      
+      // Navigate to the dashboard
+      navigate('/');
+    } catch (loginErr) {
+      console.error("Login error:", loginErr);
+      setErrors({ 
+        form: loginErr.response?.data?.message || "Login failed. Please check your credentials." 
+      });
+    }
+    
+  };
+  
+  const handleSignUp = async () => {
+    try {
+      // Validate form data
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.farmType) {
+        setErrors({ form: "All fields are required" });
+        return;
+      }
+      
+      // Register the user
+      const signupRes = await axios.post(
+        `${BASE_URL}/signup`,
+        formData,
+        { withCredentials: true }
+      );
+      
+      console.log("Signup response:", signupRes.data);
+      
+      // Store user data in localStorage
+      localStorage.setItem('token', signupRes.data.token);
+      localStorage.setItem('user', JSON.stringify(signupRes.data.user));
+      
+      // Dispatch user to Redux store
+      dispatch(addUser(signupRes.data.user));
+      
+      // Navigate to the dashboard
+      navigate('/');
+    } catch (signupErr) {
+      console.error("Signup error:", signupErr);
+      setErrors({ 
+        form: signupErr.response?.data?.message || "Registration failed. Please try again." 
+      });
     }
   };
-
+  
   return (
     <div className="flex justify-center my-10">
       <div className="card bg-base-300 w-96 shadow-xl">
@@ -79,9 +108,10 @@ const Login = () => {
                   </div>
                   <input
                     type="text"
-                    value={firstName}
+                    name="firstName"
+                    value={formData.firstName}
                     className="input input-bordered w-full max-w-xs"
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={handleChange}
                   />
                 </label>
                 <label className="form-control w-full max-w-xs my-2">
@@ -90,10 +120,28 @@ const Login = () => {
                   </div>
                   <input
                     type="text"
-                    value={lastName}
+                    name="lastName"
+                    value={formData.lastName}
                     className="input input-bordered w-full max-w-xs"
-                    onChange={(e) => setLastName(e.target.value)}
+                    onChange={handleChange}
                   />
+                </label>
+                <label className="form-control w-full max-w-xs my-2">
+                  <div className="label">
+                    <span className="label-text">Farm Type</span>
+                  </div>
+                  <select
+                    name="farmType"
+                    value={formData.farmType}
+                    className="select select-bordered w-full max-w-xs"
+                    onChange={handleChange}
+                  >
+                    <option value="crop">Crop</option>
+                    <option value="livestock">Livestock</option>
+                    <option value="mixed">Mixed</option>
+                    <option value="organic">Organic</option>
+                    <option value="other">Other</option>
+                  </select>
                 </label>
               </>
             )}
@@ -102,10 +150,11 @@ const Login = () => {
                 <span className="label-text">Email ID:</span>
               </div>
               <input
-                type="text"
-                value={email}
+                type="email"
+                name="email"
+                value={formData.email}
                 className="input input-bordered w-full max-w-xs"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange}
               />
             </label>
             <label className="form-control w-full max-w-xs my-2">
@@ -114,13 +163,14 @@ const Login = () => {
               </div>
               <input
                 type="password"
-                value={password}
+                name="password"
+                value={formData.password}
                 className="input input-bordered w-full max-w-xs"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleChange}
               />
             </label>
           </div>
-          <p className="text-red-500">{error}</p>
+          {errors.form && <p className="text-red-500">{errors.form}</p>}
           <div className="card-actions justify-center m-2">
             <button
               className="btn btn-primary"

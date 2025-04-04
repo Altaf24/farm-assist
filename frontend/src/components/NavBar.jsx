@@ -438,6 +438,7 @@ const NavBar = () => {
   useEffect(() => {
     // Check auth status on initial load
     checkAuthStatus()
+    
 
     // Set up scroll event listener
     const handleScroll = () => {
