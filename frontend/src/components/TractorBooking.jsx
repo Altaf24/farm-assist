@@ -7,8 +7,8 @@ const BASE_URL = "http://localhost:56789";
 
 const TractorBooking = () => {
   const [location, setLocation] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState('2025-05-01');
+  const [time, setTime] = useState('22:55');
   const [duration, setDuration] = useState('2');
   const [tractorType, setTractorType] = useState('all');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -52,6 +52,8 @@ const TractorBooking = () => {
     try {
       // Check if user is logged in (you'll need to implement auth state management)
       const token = localStorage.getItem('token');
+      console.log('Token:', token);
+  
       if (!token) {
         alert('Please login to book a tractor');
         // Redirect to login page
