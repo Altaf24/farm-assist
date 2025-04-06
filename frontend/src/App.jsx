@@ -14,6 +14,7 @@ import MyBookings from './components/MyBookings'
 import RegisterTractor from './components/RegisterTractor'
 import TractorPricing from './components/TractorPricing'
 import BookingHistory from './components/BookingHistory'
+import SugarcanePage from './components/solutions/Sugarcane'
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/store" element={<Store />} />
           <Route path="/solutions/predictdisease" element={<PredictDisease />} />
+          <Route path="/solutions/sugarcane" element={<SugarcanePage />} />
           <Route path="/sso-callback" element={<SsoCallback />} />
           <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
           <Route path="/tractor/book-now" element={<TractorBooking/>}/>
