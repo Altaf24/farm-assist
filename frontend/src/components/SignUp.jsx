@@ -1,156 +1,162 @@
-"use client"
-  import { useState } from "react"
-  import { useNavigate } from "react-router-dom";
-  import { BASE_URL } from "../utils/constants";
-  import { Link } from "react-router-dom"
-  import { Eye, EyeOff, Leaf, User, Mail, Lock, Check, ArrowRight } from "lucide-react"
-  import axios from 'axios';
+"use client";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../utils/constants";
+import { Link } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  Leaf,
+  User,
+  Mail,
+  Lock,
+  Check,
+  ArrowRight,
+} from "lucide-react";
+import axios from "axios";
 
-  export default function SignupForm() {
-    const [isLoading, setIsLoading] = useState(false)
-    const [errors, setErrors] = useState({})
-    const [showPassword, setShowPassword] = useState(false)
-    const [agreeToTerms, setAgreeToTerms] = useState(false)
-    const [formData, setFormData] = useState({
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      farmType: "",
-    })
+export default function SignupForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    farmType: "",
+  });
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const farmTypes = [
-      { value: "crop", label: "Crop Farming", icon: "🌾" },
-      { value: "livestock", label: "Livestock Farming", icon: "🐄" },
-      { value: "mixed", label: "Mixed Farming", icon: "🚜" },
-      { value: "organic", label: "Organic Farming", icon: "🌱" },
-      { value: "other", label: "Other", icon: "🌿" },
-    ]
+  const farmTypes = [
+    { value: "crop", label: "Crop Farming", icon: "🌾" },
+    { value: "livestock", label: "Livestock Farming", icon: "🐄" },
+    { value: "mixed", label: "Mixed Farming", icon: "🚜" },
+    { value: "organic", label: "Organic Farming", icon: "🌱" },
+    { value: "other", label: "Other", icon: "🌿" },
+  ];
 
-    const handleChange = (e) => {
-      const { name, value } = e.target
-      setFormData({
-        ...formData,
-        [name]: value,
-      })
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
 
-      // Clear error when user starts typing
-      if (errors[name]) {
-        setErrors({
-          ...errors,
-          [name]: null,
-        })
-      }
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: null,
+      });
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
     }
 
-    const validateForm = () => {
-      const newErrors = {}
-
-      if (!formData.firstName.trim()) {
-        newErrors.firstName = "First name is required"
-      }
-
-      if (!formData.lastName.trim()) {
-        newErrors.lastName = "Last name is required"
-      }
-
-      if (!formData.email) {
-        newErrors.email = "Email is required"
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Email is invalid"
-      }
-
-      if (!formData.password) {
-        newErrors.password = "Password is required"
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters"
-      }
-
-      if (!formData.farmType) {
-        newErrors.farmType = "Farm type is required"
-      }
-
-      if (!agreeToTerms) {
-        newErrors.terms = "You must agree to the terms and conditions"
-      }
-
-      return newErrors
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
     }
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      setIsLoading(true);
-    
-      const newErrors = validateForm();
-      if (Object.keys(newErrors).length > 0) {
-        setErrors(newErrors);
-        setIsLoading(false);
-        return;
-      }
-    
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (!formData.farmType) {
+      newErrors.farmType = "Farm type is required";
+    }
+
+    if (!agreeToTerms) {
+      newErrors.terms = "You must agree to the terms and conditions";
+    }
+
+    return newErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      console.log("Sending signup request to:", `${BASE_URL}/signup`);
+      console.log("With data:", formData);
+
+      // Use axios for API call with proper error handling
+      const response = await axios.post(`${BASE_URL}/signup`, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Signup response:", response.data);
+
+      // After successful signup, perform login
       try {
-        console.log("Sending signup request to:", `${BASE_URL}/signup`);
-        console.log("With data:", formData);
-        
-        // Use axios for API call with proper error handling
-        const response = await axios.post(
-          `${BASE_URL}/signup`,
-          formData,
-          { 
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
+        const loginRes = await axios.post(
+          `${BASE_URL}/login`,
+          {
+            email: formData.email,
+            password: formData.password,
+          },
+          { withCredentials: true }
         );
-    
-        console.log("Signup response:", response.data);
-        
-        // After successful signup, perform login
-        try {
-          const loginRes = await axios.post(
-            `${BASE_URL}/login`,
-            {
-              email: formData.email,
-              password: formData.password,
-            },
-            { withCredentials: true }
-          );
-          
-          console.log("Login response:", loginRes.data);
-          
-          // Store user data in localStorage
-          localStorage.setItem('token', loginRes.data.token);
-          localStorage.setItem('user', JSON.stringify(loginRes.data.user));
-          window.dispatchEvent(new Event('authChanged'));
-          // Navigate to the dashboard
-          navigate('/');
-        } catch (loginErr) {
-          console.error("Login error:", loginErr);
-          setErrors({ 
-            form: loginErr.response?.data?.message || "Account created but login failed. Please try logging in manually." 
-          });
-          navigate('/login');
-        }
-      } catch (error) {
-        console.error("Signup error details:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status
-        });
-        
-        setErrors({ 
-          form: error.response?.data?.message || 
-                `Failed to create account: ${error.message}. Please try again.` 
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
 
+        console.log("Login response:", loginRes.data);
+
+        // Store user data in localStorage
+        localStorage.setItem("token", loginRes.data.token);
+        localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+        window.dispatchEvent(new Event("authChanged"));
+        // Navigate to the dashboard
+        navigate("/");
+      } catch (loginErr) {
+        console.error("Login error:", loginErr);
+        setErrors({
+          form:
+            loginErr.response?.data?.message ||
+            "Account created but login failed. Please try logging in manually.",
+        });
+        navigate("/login");
+      }
+    } catch (error) {
+      console.error("Signup error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+
+      setErrors({
+        form:
+          error.response?.data?.message ||
+          `Failed to create account: ${error.message}. Please try again.`,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-600 to-emerald-800 relative overflow-hidden pt-32 pb-12">
@@ -191,7 +197,9 @@
                 <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center shadow-md">
                   <Leaf className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="ml-3 text-2xl font-bold text-gray-900">Create Your Account</h2>
+                <h2 className="ml-3 text-2xl font-bold text-gray-900">
+                  Create Your Account
+                </h2>
               </div>
 
               {errors.form && (
@@ -203,7 +211,10 @@
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       First Name
                     </label>
                     <div className="relative">
@@ -217,16 +228,25 @@
                         value={formData.firstName}
                         onChange={handleChange}
                         className={`w-full pl-10 pr-3 py-2 border ${
-                          errors.firstName ? "border-red-500" : "border-gray-300"
+                          errors.firstName
+                            ? "border-red-500"
+                            : "border-gray-300"
                         } rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
                         placeholder="John"
                       />
                     </div>
-                    {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>}
+                    {errors.firstName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.firstName}
+                      </p>
+                    )}
                   </div>
 
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-gray-700 mb-1"
+                    >
                       Last Name
                     </label>
                     <div className="relative">
@@ -245,12 +265,19 @@
                         placeholder="Doe"
                       />
                     </div>
-                    {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>}
+                    {errors.lastName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.lastName}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Email Address
                   </label>
                   <div className="relative">
@@ -269,11 +296,16 @@
                       placeholder="you@example.com"
                     />
                   </div>
-                  {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Password
                   </label>
                   <div className="relative">
@@ -289,7 +321,7 @@
                       className={`w-full pl-10 pr-10 py-2 border ${
                         errors.password ? "border-red-500" : "border-gray-300"
                       } rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent`}
-                      placeholder="••••••••"
+                      placeholder="your password" 
                     />
                     <button
                       type="button"
@@ -303,43 +335,59 @@
                       )}
                     </button>
                   </div>
-                  {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
-                  <p className="mt-1 text-xs text-gray-500">Password must be at least 6 characters long</p>
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.password}
+                    </p>
+                  )}
+                  <p className="mt-1 text-xs text-gray-500">
+                    Password must be at least 6 characters long
+                  </p>
                 </div>
 
                 <div>
-                  <label htmlFor="farmType" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="farmType"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Type of Farming
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
-                  {farmTypes.map((type) => (
-  <div key={type.value}>
-    <input
-      type="radio"
-      id={`farmType-${type.value}`}
-      name="farmType"
-      value={type.value}
-      className="sr-only"
-      checked={formData.farmType === type.value}
-      onChange={handleChange}
-    />
-    <label
-      htmlFor={`farmType-${type.value}`}
-      className={`flex items-center p-3 border ${
-        formData.farmType === type.value
-          ? "border-green-500 bg-green-50"
-          : "border-gray-300 hover:bg-gray-50"
-      } rounded-lg cursor-pointer transition-colors`}
-    >
-      <span className="text-xl mr-2">{type.icon}</span>
-      <span className="text-sm font-medium text-gray-900">{type.label}</span>
-      {formData.farmType === type.value && <Check className="ml-auto h-5 w-5 text-green-500" />}
-    </label>
-  </div>
-))}
-
+                    {farmTypes.map((type) => (
+                      <div key={type.value}>
+                        <input
+                          type="radio"
+                          id={`farmType-${type.value}`}
+                          name="farmType"
+                          value={type.value}
+                          className="sr-only"
+                          checked={formData.farmType === type.value}
+                          onChange={handleChange}
+                        />
+                        <label
+                          htmlFor={`farmType-${type.value}`}
+                          className={`flex items-center p-3 border ${
+                            formData.farmType === type.value
+                              ? "border-green-500 bg-green-50"
+                              : "border-gray-300 hover:bg-gray-50"
+                          } rounded-lg cursor-pointer transition-colors`}
+                        >
+                          <span className="text-xl mr-2">{type.icon}</span>
+                          <span className="text-sm font-medium text-gray-900">
+                            {type.label}
+                          </span>
+                          {formData.farmType === type.value && (
+                            <Check className="ml-auto h-5 w-5 text-green-500" />
+                          )}
+                        </label>
+                      </div>
+                    ))}
                   </div>
-                  {errors.farmType && <p className="mt-1 text-sm text-red-600">{errors.farmType}</p>}
+                  {errors.farmType && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.farmType}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-start">
@@ -354,17 +402,30 @@
                     />
                   </div>
                   <div className="ml-3 text-sm">
-                    <label htmlFor="terms" className="font-medium text-gray-700">
+                    <label
+                      htmlFor="terms"
+                      className="font-medium text-gray-700"
+                    >
                       I agree to the{" "}
-                      <Link to="/terms" className="text-green-600 hover:text-green-500">
+                      <Link
+                        to="/terms"
+                        className="text-green-600 hover:text-green-500"
+                      >
                         Terms of Service
                       </Link>{" "}
                       and{" "}
-                      <Link to="/privacy" className="text-green-600 hover:text-green-500">
+                      <Link
+                        to="/privacy"
+                        className="text-green-600 hover:text-green-500"
+                      >
                         Privacy Policy
                       </Link>
                     </label>
-                    {errors.terms && <p className="mt-1 text-sm text-red-600">{errors.terms}</p>}
+                    {errors.terms && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.terms}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -408,7 +469,10 @@
 
               <p className="mt-6 text-center text-sm text-gray-600">
                 Already have an account?{" "}
-                <Link to="/login" className="font-medium text-green-600 hover:text-green-500">
+                <Link
+                  to="/login"
+                  className="font-medium text-green-600 hover:text-green-500"
+                >
                   Log in
                 </Link>
               </p>
@@ -417,37 +481,48 @@
             {/* Right side - Benefits */}
             <div className="md:w-2/5 bg-gradient-to-br from-green-500 to-emerald-700 p-8 text-white flex flex-col justify-center relative overflow-hidden">
               <div className="relative z-10">
-                <h3 className="text-xl font-bold mb-4">Join FarmAssist Today</h3>
+                <h3 className="text-xl font-bold mb-4">
+                  Join FarmAssist Today
+                </h3>
                 <ul className="space-y-4">
                   <li className="flex items-start">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center mt-0.5">
                       <Check className="h-4 w-4 text-white" />
                     </div>
-                    <p className="ml-3 text-sm">Access AI-powered farming insights and recommendations</p>
+                    <p className="ml-3 text-sm">
+                      Access AI-powered farming insights and recommendations
+                    </p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center mt-0.5">
                       <Check className="h-4 w-4 text-white" />
                     </div>
-                    <p className="ml-3 text-sm">Monitor crop health and optimize irrigation in real-time</p>
+                    <p className="ml-3 text-sm">
+                      Monitor crop health and optimize irrigation in real-time
+                    </p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center mt-0.5">
                       <Check className="h-4 w-4 text-white" />
                     </div>
-                    <p className="ml-3 text-sm">Increase yields by up to 30% with data-driven decisions</p>
+                    <p className="ml-3 text-sm">
+                      Increase yields by up to 30% with data-driven decisions
+                    </p>
                   </li>
                   <li className="flex items-start">
                     <div className="flex-shrink-0 h-6 w-6 rounded-full bg-white bg-opacity-20 flex items-center justify-center mt-0.5">
                       <Check className="h-4 w-4 text-white" />
                     </div>
-                    <p className="ml-3 text-sm">Join a community of forward-thinking farmers</p>
+                    <p className="ml-3 text-sm">
+                      Join a community of forward-thinking farmers
+                    </p>
                   </li>
                 </ul>
 
                 <div className="mt-8 text-sm text-green-100">
-                  "FarmAssist has revolutionized how we manage our crops. The insights and recommendations have helped
-                  us increase yields while using fewer resources."
+                  "FarmAssist has revolutionized how we manage our crops. The
+                  insights and recommendations have helped us increase yields
+                  while using fewer resources."
                   <p className="mt-2 font-medium">— John D., Crop Farmer</p>
                 </div>
               </div>
@@ -464,5 +539,5 @@
         </div>
       </div>
     </div>
-  )
+  );
 }
