@@ -14,6 +14,10 @@ import MyBookings from './components/MyBookings'
 import RegisterTractor from './components/RegisterTractor'
 import TractorPricing from './components/TractorPricing'
 import BookingHistory from './components/BookingHistory'
+import Blog from './components/resources/Blog'
+import CaseStudies from './components/resources/CaseStudies'
+import Webinars from './components/resources/Webinars'
+
 
 export default function App() {
   return (
@@ -32,6 +36,9 @@ export default function App() {
           <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
+          <Route path="/resources/blog" element={<Blog/>} />
+          <Route path="/resources/case-studies" element={<CaseStudies/>} />
+          <Route path="/resources/webinars" element={<Webinars/>} />
         </Routes>
    
     </>
