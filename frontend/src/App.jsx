@@ -30,6 +30,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/store" element={<Store />} />
           <Route path="/solutions/predictdisease" element={<PredictDisease />} />
+          <Route path="/solutions/sugarcane" element={<SugarcanePage />} />
           <Route path="/sso-callback" element={<SsoCallback />} />
           <Route path='/solutions/crop-prediction' element={<CropPrediction />} />
           <Route path="/tractor/book-now" element={<TractorBooking/>}/>
