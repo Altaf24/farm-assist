@@ -14,6 +14,7 @@ import MyBookings from './components/MyBookings'
 import RegisterTractor from './components/RegisterTractor'
 import TractorPricing from './components/TractorPricing'
 import BookingHistory from './components/BookingHistory'
+import SugarcanePage from './components/solutions/Sugarcane'
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
+          <Route path="/solutions/Sugarcane" element={<SugarcanePage/>}/>
         </Routes>
    
     </>
