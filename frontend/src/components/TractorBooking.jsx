@@ -37,23 +37,23 @@ const BASE_URL = "http://localhost:56789"
 // Tractor images mapping
 const tractorImages = {
   "John Deere 5050D":
-    "https://images.unsplash.com/photo-1605002633516-f8e37785d4ed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://www.bossmachinery.nl/data/images/vehicles/l_2476_05_John%20Deere%205050%20New%202021_20.JPG",
   "Mahindra 575":
-    "https://images.unsplash.com/photo-1588935365434-e7a57a7726b9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://i.ytimg.com/vi/rpn1nKQXWWs/maxresdefault.jpg",
   "Sonalika 60":
-    "https://images.unsplash.com/photo-1589923188651-268a9765e432?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://5.imimg.com/data5/GF/SW/CX/GLADMIN-12/di-60-rx-front-tyre.jpg",
   "New Holland 3630":
-    "https://images.unsplash.com/photo-1621747336126-ae1b6c1a1dcf?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://assets.tractorjunction.com/tractor-junction/assets/images/images/oldTractor/3630-tx-special-edition-48169-1628133628-0.jpeg",
   "Massey Ferguson 241":
-    "https://images.unsplash.com/photo-1590172205848-7db2b4fea7dd?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://www.tractordata.com/photos/F001/1790/1790-td4-b01.jpg",
   "Eicher 380":
-    "https://images.unsplash.com/photo-1592805144716-feeccccef5ac?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://5.imimg.com/data5/NSDMERP/Default/2021/7/VV/PN/QT/48953664/tracktor-1625138463377-1000x1000.jpg",
   "Swaraj 744":
-    "https://images.unsplash.com/photo-1516222338250-863216ce01ea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80",
+    "https://i.ytimg.com/vi/WbtMwYueu1s/maxresdefault.jpg",
   "Farmtrac 60":
-    "https://images.unsplash.com/photo-1592805144716-feeccccef5ac?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://5.imimg.com/data5/IY/QH/EV/GLADMIN-7568/escorts-farmtrac-60-classic-50-hp-tractor-1500-kg.jpg",
   default:
-    "https://images.unsplash.com/photo-1605002633516-f8e37785d4ed?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
+    "https://i.ytimg.com/vi/WbtMwYueu1s/maxresdefault.jpg",
 }
 
 // Mock data for development - this would normally come from your API
