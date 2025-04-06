@@ -15,6 +15,9 @@ import RegisterTractor from './components/RegisterTractor'
 import TractorPricing from './components/TractorPricing'
 import BookingHistory from './components/BookingHistory'
 import SugarcanePage from './components/solutions/Sugarcane'
+import Webinars from './components/resources/Webinars'
+import CaseStudies from './components/resources/CaseStudies'
+import Blog from './components/resources/Blog'
 
 export default function App() {
   return (
@@ -34,6 +37,9 @@ export default function App() {
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
           <Route path="/solutions/Sugarcane" element={<SugarcanePage/>}/>
+          <Route path="/resources/blog" element={<Blog/>} />
+          <Route path="/resources/case-studies" element={<CaseStudies/>} />
+          <Route path="/resources/webinars" element={<Webinars/>} />
         </Routes>
    
     </>
