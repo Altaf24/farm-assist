@@ -19,6 +19,8 @@ import Webinars from './components/resources/Webinars'
 import CaseStudies from './components/resources/CaseStudies'
 import Blog from './components/resources/Blog'
 import Profile from './components/Profile'
+import WeatherForecast from './components/solutions/WeatherForecast'
+
 
 export default function App() {
   return (
@@ -37,6 +39,8 @@ export default function App() {
           <Route path="/tractor/book-now" element={<TractorBooking/>}/>
           <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
+          <Route path="/solutions/weather-forecast" element={<WeatherForecast />} />
+
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
           <Route path="/solutions/Sugarcane" element={<SugarcanePage/>}/>
           <Route path="/resources/blog" element={<Blog/>} />

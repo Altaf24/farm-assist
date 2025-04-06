@@ -557,6 +557,12 @@ return (
                 >
                   Crop Prediction & Planning
                 </Link>
+                <Link
+                  to="/solutions/weather-forecast"
+                  className="block px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+                >
+                 Weather Forecast
+                </Link>
               </div>
             </div>
           </div>
