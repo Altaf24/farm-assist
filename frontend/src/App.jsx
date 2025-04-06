@@ -18,6 +18,7 @@ import SugarcanePage from './components/solutions/Sugarcane'
 import Webinars from './components/resources/Webinars'
 import CaseStudies from './components/resources/CaseStudies'
 import Blog from './components/resources/Blog'
+import Profile from './components/Profile'
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/resources/blog" element={<Blog/>} />
           <Route path="/resources/case-studies" element={<CaseStudies/>} />
           <Route path="/resources/webinars" element={<Webinars/>} />
+          <Route path="/profile" element={<Profile/>} />
         </Routes>
    
     </>
