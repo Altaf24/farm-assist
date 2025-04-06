@@ -53,7 +53,7 @@ const tractorImages = {
   "Farmtrac 60":
     "https://5.imimg.com/data5/IY/QH/EV/GLADMIN-7568/escorts-farmtrac-60-classic-50-hp-tractor-1500-kg.jpg",
   default:
-    "https://5.imimg.com/data5/IY/QH/EV/GLADMIN-7568/escorts-farmtrac-60-classic-50-hp-tractor-1500-kg.jpg",
+    "https://i.ytimg.com/vi/WbtMwYueu1s/maxresdefault.jpg",
 }
 
 // Mock data for development - this would normally come from your API

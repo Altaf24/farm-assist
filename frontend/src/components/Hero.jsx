@@ -71,7 +71,7 @@ const Hero = () => {
                   to="https://youtu.be/Vi01hPm3mLM?si=R7lUfvFAovrQ13oZ"
                   className="inline-flex items-center px-8 py-4 text-lg font-bold rounded-xl bg-white bg-opacity-10 backdrop-blur-sm text-white border border-white border-opacity-20 hover:bg-opacity-20 transition-all duration-300"
                 >
-                  Watch Demo
+                  Watch Video
                 </Link>
               </div>
 
