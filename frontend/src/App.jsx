@@ -34,6 +34,7 @@ export default function App() {
           <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
+          <Route path="/solutions/Sugarcane" element={<SugarcanePage/>}/>
         </Routes>
    
     </>
