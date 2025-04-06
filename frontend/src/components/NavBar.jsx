@@ -540,10 +540,10 @@ return (
                   Disease Prediction & Analysis
                 </Link>
                 <Link
-                  to="/solutions/smart_bot"
+                  to="/solutions/Sugarcane"
                   className="block px-4 py-3 rounded-lg text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
                 >
-                  Smart Bot
+                  SUgarcane Disease
                 </Link>
                 <Link
                   to="/solutions/pest-control"
