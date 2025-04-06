@@ -1,724 +1,851 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Tractor, Upload, AlertTriangle, Check, Info, X } from 'lucide-react';
+"use client"
+
+import { useState, useEffect } from "react"
+import {
+  Tractor,
+  Upload,
+  MapPin,
+  Plus,
+  Minus,
+  Camera,
+  Check,
+  AlertTriangle,
+  Loader,
+  Navigation,
+  Info,
+  X,
+} from "lucide-react"
+
+const BASE_URL = "http://localhost:56789"
 
 const RegisterTractor = () => {
-  const navigate = useNavigate();
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [previewImage, setPreviewImage] = useState(null);
-  
-  // Form state
+  // State variables
   const [formData, setFormData] = useState({
-    tractorName: '',
-    brand: '',
-    model: '',
-    year: '',
-    horsepower: '',
-    tractorType: 'medium',
+    name: "",
+    type: "medium",
+    horsepower: 50,
+    hourlyRate: 450,
+    location: "",
     features: [],
-    hourlyRate: '',
-    dailyRate: '',
-    weeklyRate: '',
-    location: '',
-    description: '',
-    availabilityType: 'fulltime',
-    specificDays: [],
-    tractorImage: null,
-    registrationNumber: '',
-    insuranceStatus: false,
-    ownershipProof: null
-  });
+    description: "",
+    engine: "",
+    transmission: "",
+    liftCapacity: "",
+    fuelTank: "",
+    ownerName: "",
+    ownerPhone: "",
+    ownerEmail: "",
+  })
 
-  // Available features for checkboxes
-  const availableFeatures = [
-    'Air Conditioned Cabin',
-    'GPS Navigation',
-    'Power Steering',
-    '4WD',
-    'Implements Available',
-    'Adjustable Seat',
-    'Digital Dashboard',
-    'Heavy Duty Hydraulics',
-    'Fuel Efficient',
-    'Low Noise'
-  ];
+  const [images, setImages] = useState([])
+  const [previewImages, setPreviewImages] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
+  const [availableFeatures, setAvailableFeatures] = useState([
+    { id: 1, name: "4WD", selected: false },
+    { id: 2, name: "Power Steering", selected: false },
+    { id: 3, name: "Adjustable Seat", selected: false },
+    { id: 4, name: "Canopy", selected: false },
+    { id: 5, name: "AC Cabin", selected: false },
+    { id: 6, name: "Oil Immersed Brakes", selected: false },
+    { id: 7, name: "Deluxe Seat", selected: false },
+    { id: 8, name: "Hydraulic System", selected: false },
+    { id: 9, name: "LED Lights", selected: false },
+    { id: 10, name: "GPS Navigation", selected: false },
+  ])
+  const [showTips, setShowTips] = useState(true)
+  const [step, setStep] = useState(1)
 
-  // Days of the week for availability selection
-  const daysOfWeek = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ];
+  // Tractor models for autocomplete
+  const tractorModels = [
+    "John Deere 5050D",
+    "Mahindra 575",
+    "Sonalika 60",
+    "New Holland 3630",
+    "Massey Ferguson 241",
+    "Eicher 380",
+    "Swaraj 744",
+    "Farmtrac 60",
+    "Powertrac 439",
+    "Kubota MU4501",
+  ]
 
-  useEffect(() => {
-    // Check if user is signed in
-    const token = localStorage.getItem('token');
-    if (token) {
-      setIsSignedIn(true);
-    }
-  }, []);
+  // Handle input change
+  const handleChange = (e) => {
+    const { name, value, type } = e.target
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    
-    if (type === 'checkbox') {
-      if (name === 'features') {
-        // Handle features checkboxes
-        const updatedFeatures = [...formData.features];
-        if (checked) {
-          updatedFeatures.push(value);
-        } else {
-          const index = updatedFeatures.indexOf(value);
-          if (index > -1) {
-            updatedFeatures.splice(index, 1);
-          }
-        }
-        setFormData({ ...formData, features: updatedFeatures });
-      } else if (name === 'specificDays') {
-        // Handle specific days checkboxes
-        const updatedDays = [...formData.specificDays];
-        if (checked) {
-          updatedDays.push(value);
-        } else {
-          const index = updatedDays.indexOf(value);
-          if (index > -1) {
-            updatedDays.splice(index, 1);
-          }
-        }
-        setFormData({ ...formData, specificDays: updatedDays });
-      } else {
-        // Handle other checkboxes
-        setFormData({ ...formData, [name]: checked });
-      }
+    if (type === "number") {
+      setFormData({
+        ...formData,
+        [name]: value === "" ? "" : Number(value),
+      })
     } else {
-      // Handle regular inputs
-      setFormData({ ...formData, [name]: value });
+      setFormData({
+        ...formData,
+        [name]: value,
+      })
     }
-  };
+  }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, tractorImage: file });
-      
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+  // Handle feature toggle
+  const handleFeatureToggle = (id) => {
+    const updatedFeatures = availableFeatures.map((feature) =>
+      feature.id === id ? { ...feature, selected: !feature.selected } : feature,
+    )
+
+    setAvailableFeatures(updatedFeatures)
+
+    // Update formData.features with selected feature names
+    const selectedFeatures = updatedFeatures.filter((feature) => feature.selected).map((feature) => feature.name)
+
+    setFormData({
+      ...formData,
+      features: selectedFeatures,
+    })
+  }
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files)
+
+    if (files.length > 0) {
+      setImages([...images, ...files])
+
+      // Create preview URLs
+      const newPreviewImages = files.map((file) => URL.createObjectURL(file))
+      setPreviewImages([...previewImages, ...newPreviewImages])
     }
-  };
+  }
 
-  const handleDocumentChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, ownershipProof: file });
+  // Remove image
+  const removeImage = (index) => {
+    const newImages = [...images]
+    const newPreviewImages = [...previewImages]
+
+    newImages.splice(index, 1)
+    URL.revokeObjectURL(previewImages[index])
+    newPreviewImages.splice(index, 1)
+
+    setImages(newImages)
+    setPreviewImages(newPreviewImages)
+  }
+
+  // Get user's location
+  const getUserLocation = () => {
+    setIsGettingLocation(true)
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          // Convert coordinates to address using reverse geocoding
+          // For demo, we'll just use Punjab locations
+          const punjabLocations = [
+            "Amritsar, Punjab",
+            "Ludhiana, Punjab",
+            "Jalandhar, Punjab",
+            "Patiala, Punjab",
+            "Bathinda, Punjab",
+          ]
+          const randomLocation = punjabLocations[Math.floor(Math.random() * punjabLocations.length)]
+          setFormData({
+            ...formData,
+            location: randomLocation,
+          })
+          setIsGettingLocation(false)
+        },
+        (error) => {
+          console.error("Error getting location:", error)
+          setIsGettingLocation(false)
+          alert("Unable to get your location. Please enter it manually.")
+        },
+      )
+    } else {
+      alert("Geolocation is not supported by your browser. Please enter your location manually.")
+      setIsGettingLocation(false)
     }
-  };
+  }
 
+  // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage('');
-    setSuccessMessage('');
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
 
-    // Validate form
-    if (!formData.tractorName || !formData.brand || !formData.horsepower || !formData.hourlyRate || !formData.location) {
-      setErrorMessage('Please fill in all required fields');
-      setIsSubmitting(false);
-      return;
-    }
+    try {
+      // Validate form
+      if (!formData.name || !formData.type || !formData.horsepower || !formData.hourlyRate || !formData.location) {
+        throw new Error("Please fill in all required fields")
+      }
 
-    if (!formData.tractorImage) {
-      setErrorMessage('Please upload an image of your tractor');
-      setIsSubmitting(false);
-      return;
-    }
+      if (images.length === 0) {
+        throw new Error("Please upload at least one image of your tractor")
+      }
 
-    if (formData.availabilityType === 'specific' && formData.specificDays.length === 0) {
-      setErrorMessage('Please select at least one day of availability');
-      setIsSubmitting(false);
-      return;
-    }
-
-    // In a real app, you would send this data to your API
-    // For now, we'll simulate a successful submission
-    setTimeout(() => {
-      setSuccessMessage('Your tractor has been registered successfully! Our team will review your submission and contact you shortly.');
-      setIsSubmitting(false);
-      
-      // Reset form after successful submission
+      // In a real app, this would be an API call to upload images and create tractor listing
+      // For demo purposes, we'll simulate a successful submission
       setTimeout(() => {
-        navigate('/tractor/my-tractors');
-      }, 3000);
-    }, 2000);
-  };
+        setIsLoading(false)
+        setSuccess(true)
+        window.scrollTo(0, 0)
+      }, 2000)
+    } catch (err) {
+      console.error("Error registering tractor:", err)
+      setError(err.message || "Failed to register tractor. Please try again later.")
+      setIsLoading(false)
+    }
+  }
 
-  if (!isSignedIn) {
+  // Handle next step
+  const handleNextStep = () => {
+    // Validate current step
+    if (step === 1) {
+      if (!formData.name || !formData.type || !formData.horsepower || !formData.hourlyRate) {
+        setError("Please fill in all required fields in this section")
+        return
+      }
+    } else if (step === 2) {
+      if (!formData.location || formData.features.length === 0) {
+        setError("Please fill in location and select at least one feature")
+        return
+      }
+    }
+
+    setError(null)
+    setStep(step + 1)
+    window.scrollTo(0, 0)
+  }
+
+  // Handle previous step
+  const handlePrevStep = () => {
+    setStep(step - 1)
+    window.scrollTo(0, 0)
+  }
+
+  // Clean up preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      previewImages.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [previewImages])
+
+  // Render success message
+  if (success) {
     return (
-      <div className="pt-24 pb-16 min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <AlertTriangle className="mx-auto h-12 w-12 text-yellow-500" />
-            <h3 className="mt-2 text-lg font-medium text-gray-900">Please sign in to register your tractor</h3>
-            <p className="mt-1 text-gray-500">You need to be logged in to access this page.</p>
-            <div className="mt-6">
-              <Link
-                to="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+      <div className="pt-24 pb-16 min-h-screen bg-gradient-to-b from-green-50 to-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-green-100 text-center">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Check className="h-10 w-10 text-green-600" />
+            </div>
+
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Tractor Registered Successfully!</h2>
+            <p className="text-gray-600 mb-6">Your tractor has been listed and is now available for booking.</p>
+
+            <div className="bg-gray-50 p-6 rounded-xl max-w-md mx-auto mb-8">
+              <div className="flex items-center mb-4">
+                {previewImages.length > 0 && (
+                  <img
+                    src={previewImages[0] || "/placeholder.svg"}
+                    alt={formData.name}
+                    className="w-16 h-16 object-cover rounded-lg mr-4"
+                  />
+                )}
+                <div className="text-left">
+                  <h4 className="font-bold text-gray-900">{formData.name}</h4>
+                  <p className="text-sm text-gray-600">
+                    {formData.horsepower} HP • {formData.type.charAt(0).toUpperCase() + formData.type.slice(1)} Duty
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm text-left">
+                <div>
+                  <p className="text-gray-500">Hourly Rate</p>
+                  <p className="font-medium">₹{formData.hourlyRate}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Location</p>
+                  <p className="font-medium">{formData.location}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-500">Features</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {formData.features.map((feature, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-500">Listing ID</p>
+                  <p className="font-medium">
+                    TRAC
+                    {Math.floor(Math.random() * 10000)
+                      .toString()
+                      .padStart(4, "0")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-md"
               >
-                Log In
-              </Link>
+                Register Another Tractor
+              </button>
+
+              <a
+                href="/my-tractors"
+                className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+              >
+                View My Tractors
+              </a>
+            </div>
+
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg max-w-md mx-auto">
+              <div className="flex">
+                <Info className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0" />
+                <p className="text-sm text-blue-800 text-left">
+                  You will be notified when someone books your tractor. Make sure to keep your contact information
+                  updated to receive booking requests.
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="pt-24 pb-16 min-h-screen bg-gray-50">
+    <div className="pt-24 pb-16 min-h-screen bg-gradient-to-b from-green-50 to-white">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-gray-900 sm:text-4xl">Register Your Tractor</h1>
-          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-500 sm:mt-4">
-            Earn money by renting out your tractor to local farmers
+          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">
+            Register Your Tractor
+          </h1>
+          <p className="mt-3 max-w-2xl mx-auto text-xl text-gray-600 sm:mt-4">
+            Earn money by renting out your tractor to farmers in need
           </p>
         </div>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="mb-8 bg-green-50 border-l-4 border-green-400 p-4 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <Check className="h-5 w-5 text-green-400" />
+        {/* Progress Steps */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 1 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                <Tractor className="h-5 w-5" />
               </div>
-              <div className="ml-3">
-                <p className="text-sm text-green-700">{successMessage}</p>
+              <span className="mt-2 text-sm font-medium text-gray-700">Tractor Details</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step >= 2 ? "bg-green-600" : "bg-gray-200"}`}></div>
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 2 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                <MapPin className="h-5 w-5" />
+              </div>
+              <span className="mt-2 text-sm font-medium text-gray-700">Location & Features</span>
+            </div>
+            <div className={`flex-1 h-1 mx-2 ${step >= 3 ? "bg-green-600" : "bg-gray-200"}`}></div>
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  step >= 3 ? "bg-green-600 text-white" : "bg-gray-200 text-gray-500"
+                }`}
+              >
+                <Camera className="h-5 w-5" />
+              </div>
+              <span className="mt-2 text-sm font-medium text-gray-700">Photos & Contact</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Tips Section */}
+        {showTips && (
+          <div className="bg-blue-50 rounded-xl p-4 mb-6 relative">
+            <button
+              onClick={() => setShowTips(false)}
+              className="absolute top-2 right-2 text-blue-400 hover:text-blue-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="flex">
+              <Info className="h-6 w-6 text-blue-500 mr-3 flex-shrink-0" />
+              <div>
+                <h3 className="font-medium text-blue-800">Tips for a Successful Listing</h3>
+                <ul className="mt-2 text-sm text-blue-700 space-y-1">
+                  <li>• Provide accurate details about your tractor's specifications</li>
+                  <li>• Upload clear, high-quality photos from multiple angles</li>
+                  <li>• Set a competitive hourly rate based on your tractor's features</li>
+                  <li>• Keep your contact information up to date</li>
+                  <li>• Respond quickly to booking requests</li>
+                </ul>
               </div>
             </div>
           </div>
         )}
 
         {/* Error Message */}
-        {errorMessage && (
-          <div className="mb-8 bg-red-50 border-l-4 border-red-400 p-4 rounded-md">
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg">
             <div className="flex">
-              <div className="flex-shrink-0">
-                <X className="h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{errorMessage}</p>
+              <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
+              <div>
+                <p className="text-sm text-red-700">{error}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Registration Form */}
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="p-6">
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-8">
-                {/* Basic Information Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h2>
-                  <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="tractorName" className="block text-sm font-medium text-gray-700">
-                        Tractor Name/Title <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="tractorName"
-                          id="tractorName"
-                          value={formData.tractorName}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. John Deere 5E Series"
-                          required
-                        />
-                      </div>
-                    </div>
+        {/* Main Form */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-green-100">
+          <form onSubmit={handleSubmit}>
+            {/* Step 1: Tractor Details */}
+            {step === 1 && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Tractor Details</h2>
 
-                    <div>
-                      <label htmlFor="brand" className="block text-sm font-medium text-gray-700">
-                        Brand <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="brand"
-                          id="brand"
-                          value={formData.brand}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. John Deere"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="model" className="block text-sm font-medium text-gray-700">
-                        Model
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="model"
-                          id="model"
-                          value={formData.model}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. 5075E"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="year" className="block text-sm font-medium text-gray-700">
-                        Year of Manufacture
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="number"
-                          name="year"
-                          id="year"
-                          value={formData.year}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. 2020"
-                          min="1980"
-                          max={new Date().getFullYear()}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="horsepower" className="block text-sm font-medium text-gray-700">
-                        Horsepower <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="number"
-                          name="horsepower"
-                          id="horsepower"
-                          value={formData.horsepower}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. 75"
-                          min="1"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="tractorType" className="block text-sm font-medium text-gray-700">
-                        Tractor Type <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1">
-                        <select
-                          id="tractorType"
-                          name="tractorType"
-                          value={formData.tractorType}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          required
-                        >
-                          <option value="light">Light Duty</option>
-                          <option value="medium">Medium Duty</option>
-                          <option value="heavy">Heavy Duty</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="registrationNumber" className="block text-sm font-medium text-gray-700">
-                        Registration Number
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="registrationNumber"
-                          id="registrationNumber"
-                          value={formData.registrationNumber}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. PB-01-AB-1234"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                        Location <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="location"
-                          id="location"
-                          value={formData.location}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          placeholder="e.g. Amritsar, Punjab"
-                          required
-                        />
-                      </div>
+                <div className="space-y-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                      Tractor Model <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="e.g. John Deere 5050D"
+                        list="tractor-models"
+                        required
+                      />
+                      <datalist id="tractor-models">
+                        {tractorModels.map((model, index) => (
+                          <option key={index} value={model} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
-                </div>
 
-                                {/* Features Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Features</h2>
-                  <div className="mt-6">
-                    <div className="grid grid-cols-1 gap-y-2 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
+                      Tractor Type <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      id="type"
+                      name="type"
+                      value={formData.type}
+                      onChange={handleChange}
+                      className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                      required
+                    >
+                      <option value="light">Light Duty (30-45 HP)</option>
+                      <option value="medium">Medium Duty (45-60 HP)</option>
+                      <option value="heavy">Heavy Duty (60+ HP)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="horsepower" className="block text-sm font-medium text-gray-700 mb-1">
+                      Horsepower <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex">
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, horsepower: Math.max(30, formData.horsepower - 5) })}
+                        className="px-3 py-2 border border-gray-300 bg-gray-100 rounded-l-lg"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <input
+                        type="number"
+                        id="horsepower"
+                        name="horsepower"
+                        value={formData.horsepower}
+                        onChange={handleChange}
+                        className="block w-full border-y border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500 text-center"
+                        min="30"
+                        max="100"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, horsepower: Math.min(100, formData.horsepower + 5) })}
+                        className="px-3 py-2 border border-gray-300 bg-gray-100 rounded-r-lg"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                      <span className="ml-2 inline-flex items-center px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg">
+                        HP
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700 mb-1">
+                      Hourly Rate (₹) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-300 bg-gray-50 rounded-l-lg">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        id="hourlyRate"
+                        name="hourlyRate"
+                        value={formData.hourlyRate}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-r-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        min="100"
+                        max="2000"
+                        required
+                      />
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">Recommended: ₹350-₹600 for medium duty tractors</p>
+                  </div>
+
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      rows="3"
+                      className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                      placeholder="Describe your tractor, its condition, and any special features..."
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Location & Features */}
+            {step === 2 && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Location & Features</h2>
+
+                <div className="space-y-6">
+                  <div>
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                      Location <span className="text-red-500">*</span>
+                    </label>
+                    <div className="flex items-center">
+                      <div className="relative flex-grow">
+                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                          type="text"
+                          id="location"
+                          name="location"
+                          value={formData.location}
+                          onChange={handleChange}
+                          className="block w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 focus:ring-green-500 focus:border-green-500"
+                          placeholder="Enter your location"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={getUserLocation}
+                        className="ml-2 p-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200"
+                        disabled={isGettingLocation}
+                      >
+                        {isGettingLocation ? (
+                          <Loader className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <Navigation className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500">This is where farmers will pick up your tractor</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Features <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
                       {availableFeatures.map((feature) => (
-                        <div key={feature} className="relative flex items-start">
-                          <div className="flex items-center h-5">
-                            <input
-                              id={`feature-${feature}`}
-                              name="features"
-                              type="checkbox"
-                              value={feature}
-                              checked={formData.features.includes(feature)}
-                              onChange={handleInputChange}
-                              className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                            />
+                        <div
+                          key={feature.id}
+                          onClick={() => handleFeatureToggle(feature.id)}
+                          className={`p-3 border rounded-lg cursor-pointer flex items-center ${
+                            feature.selected ? "border-green-500 bg-green-50" : "border-gray-300 hover:bg-gray-50"
+                          }`}
+                        >
+                          <div
+                            className={`w-5 h-5 rounded-full flex items-center justify-center mr-2 ${
+                              feature.selected ? "bg-green-500" : "border border-gray-400"
+                            }`}
+                          >
+                            {feature.selected && <Check className="h-3 w-3 text-white" />}
                           </div>
-                          <div className="ml-3 text-sm">
-                            <label htmlFor={`feature-${feature}`} className="font-medium text-gray-700">
-                              {feature}
-                            </label>
-                          </div>
+                          <span className="text-sm">{feature.name}</span>
                         </div>
                       ))}
                     </div>
+                    <p className="mt-2 text-sm text-gray-500">Select all features that apply to your tractor</p>
                   </div>
-                </div>
 
-                {/* Description Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Description</h2>
-                  <div className="mt-6">
-                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                      Tractor Description
-                    </label>
-                    <div className="mt-1">
-                      <textarea
-                        id="description"
-                        name="description"
-                        rows={4}
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        className="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        placeholder="Describe your tractor, its condition, and any special features..."
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="engine" className="block text-sm font-medium text-gray-700 mb-1">
+                        Engine
+                      </label>
+                      <input
+                        type="text"
+                        id="engine"
+                        name="engine"
+                        value={formData.engine}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="e.g. 3-cylinder diesel"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="transmission" className="block text-sm font-medium text-gray-700 mb-1">
+                        Transmission
+                      </label>
+                      <input
+                        type="text"
+                        id="transmission"
+                        name="transmission"
+                        value={formData.transmission}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="e.g. 8 forward + 2 reverse"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="liftCapacity" className="block text-sm font-medium text-gray-700 mb-1">
+                        Lift Capacity
+                      </label>
+                      <input
+                        type="text"
+                        id="liftCapacity"
+                        name="liftCapacity"
+                        value={formData.liftCapacity}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="e.g. 1500 kg"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="fuelTank" className="block text-sm font-medium text-gray-700 mb-1">
+                        Fuel Tank Capacity
+                      </label>
+                      <input
+                        type="text"
+                        id="fuelTank"
+                        name="fuelTank"
+                        value={formData.fuelTank}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="e.g. 60 L"
                       />
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Pricing Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Pricing</h2>
-                  <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-3">
-                    <div>
-                      <label htmlFor="hourlyRate" className="block text-sm font-medium text-gray-700">
-                        Hourly Rate (₹) <span className="text-red-500">*</span>
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">₹</span>
-                        </div>
-                        <input
-                          type="number"
-                          name="hourlyRate"
-                          id="hourlyRate"
-                          value={formData.hourlyRate}
-                          onChange={handleInputChange}
-                          className="focus:ring-green-500 focus:border-green-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md"
-                          placeholder="0.00"
-                          min="0"
-                          required
-                        />
-                      </div>
-                    </div>
+            {/* Step 3: Photos & Contact */}
+            {step === 3 && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Photos & Contact Information</h2>
 
-                    <div>
-                      <label htmlFor="dailyRate" className="block text-sm font-medium text-gray-700">
-                        Daily Rate (₹)
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">₹</span>
-                        </div>
-                        <input
-                          type="number"
-                          name="dailyRate"
-                          id="dailyRate"
-                          value={formData.dailyRate}
-                          onChange={handleInputChange}
-                          className="focus:ring-green-500 focus:border-green-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md"
-                          placeholder="0.00"
-                          min="0"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label htmlFor="weeklyRate" className="block text-sm font-medium text-gray-700">
-                        Weekly Rate (₹)
-                      </label>
-                      <div className="mt-1 relative rounded-md shadow-sm">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <span className="text-gray-500 sm:text-sm">₹</span>
-                        </div>
-                        <input
-                          type="number"
-                          name="weeklyRate"
-                          id="weeklyRate"
-                          value={formData.weeklyRate}
-                          onChange={handleInputChange}
-                          className="focus:ring-green-500 focus:border-green-500 block w-full pl-7 sm:text-sm border-gray-300 rounded-md"
-                          placeholder="0.00"
-                          min="0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Availability Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Availability</h2>
-                  <div className="mt-6">
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Availability Type</label>
-                      <fieldset className="mt-2">
-                        <div className="space-y-4 sm:flex sm:items-center sm:space-y-0 sm:space-x-10">
-                          <div className="flex items-center">
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tractor Photos <span className="text-red-500">*</span>
+                    </label>
+                    <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
+                      <div className="space-y-1 text-center">
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="flex text-sm text-gray-600">
+                          <label
+                            htmlFor="file-upload"
+                            className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500"
+                          >
+                            <span>Upload photos</span>
                             <input
-                              id="fulltime"
-                              name="availabilityType"
-                              type="radio"
-                              value="fulltime"
-                              checked={formData.availabilityType === 'fulltime'}
-                              onChange={handleInputChange}
-                              className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
+                              id="file-upload"
+                              name="file-upload"
+                              type="file"
+                              className="sr-only"
+                              multiple
+                              accept="image/*"
+                              onChange={handleImageUpload}
                             />
-                            <label htmlFor="fulltime" className="ml-3 block text-sm font-medium text-gray-700">
-                              Full-time (Always available)
-                            </label>
-                          </div>
-                          <div className="flex items-center">
-                            <input
-                              id="specific"
-                              name="availabilityType"
-                              type="radio"
-                              value="specific"
-                              checked={formData.availabilityType === 'specific'}
-                              onChange={handleInputChange}
-                              className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300"
-                            />
-                            <label htmlFor="specific" className="ml-3 block text-sm font-medium text-gray-700">
-                              Specific Days
-                            </label>
-                          </div>
+                          </label>
+                          <p className="pl-1">or drag and drop</p>
                         </div>
-                      </fieldset>
+                        <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB each</p>
+                      </div>
                     </div>
 
-                    {formData.availabilityType === 'specific' && (
-                      <div className="mt-4">
-                        <label className="text-sm font-medium text-gray-700">Select Available Days</label>
-                        <div className="mt-2 grid grid-cols-2 gap-y-2 sm:grid-cols-4">
-                          {daysOfWeek.map((day) => (
-                            <div key={day} className="relative flex items-start">
-                              <div className="flex items-center h-5">
-                                <input
-                                  id={`day-${day}`}
-                                  name="specificDays"
-                                  type="checkbox"
-                                  value={day}
-                                  checked={formData.specificDays.includes(day)}
-                                  onChange={handleInputChange}
-                                  className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                                />
-                              </div>
-                              <div className="ml-3 text-sm">
-                                <label htmlFor={`day-${day}`} className="font-medium text-gray-700">
-                                  {day}
-                                </label>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                    {previewImages.length > 0 && (
+                      <div className="mt-4 grid grid-cols-3 gap-4">
+                        {previewImages.map((url, index) => (
+                          <div key={index} className="relative">
+                            <img
+                              src={url || "/placeholder.svg"}
+                              alt={`Preview ${index + 1}`}
+                              className="h-24 w-full object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* Images and Documents Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Images and Documents</h2>
-                  <div className="mt-6 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                    <div className="sm:col-span-2">
-                      <label htmlFor="tractorImage" className="block text-sm font-medium text-gray-700">
-                        Tractor Image <span className="text-red-500">*</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="ownerName" className="block text-sm font-medium text-gray-700 mb-1">
+                        Your Name <span className="text-red-500">*</span>
                       </label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          {previewImage ? (
-                            <div>
-                              <img src={previewImage} alt="Tractor preview" className="mx-auto h-32 w-auto" />
-                              <p className="text-xs text-gray-500 mt-2">
-                                Click "Choose File" to change the image
-                              </p>
-                            </div>
-                          ) : (
-                            <div>
-                              <Tractor className="mx-auto h-12 w-12 text-gray-400" />
-                              <div className="flex text-sm text-gray-600">
-                                <label
-                                  htmlFor="file-upload"
-                                  className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500"
-                                >
-                                  <span>Upload a file</span>
-                                  <input
-                                    id="file-upload"
-                                    name="file-upload"
-                                    type="file"
-                                    className="sr-only"
-                                    onChange={handleImageChange}
-                                    accept="image/*"
-                                  />
-                                </label>
-                                <p className="pl-1">or drag and drop</p>
-                              </div>
-                              <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
-                            </div>
-                          )}
+                      <input
+                        type="text"
+                        id="ownerName"
+                        name="ownerName"
+                        value={formData.ownerName}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Enter your full name"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="ownerPhone" className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone Number <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="tel"
+                        id="ownerPhone"
+                        name="ownerPhone"
+                        value={formData.ownerPhone}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Enter your phone number"
+                        required
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="ownerEmail" className="block text-sm font-medium text-gray-700 mb-1">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        id="ownerEmail"
+                        name="ownerEmail"
+                        value={formData.ownerEmail}
+                        onChange={handleChange}
+                        className="block w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        placeholder="Enter your email address"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 p-4 rounded-lg">
+                    <div className="flex">
+                      <AlertTriangle className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0" />
+                      <div>
+                        <h3 className="text-sm font-medium text-yellow-800">Important Information</h3>
+                        <div className="mt-2 text-sm text-yellow-700">
+                          <p>
+                            By registering your tractor, you agree to our terms and conditions. You are responsible for:
+                          </p>
+                          <ul className="list-disc pl-5 mt-1 space-y-1">
+                            <li>Ensuring your tractor is in good working condition</li>
+                            <li>Providing accurate information about your tractor</li>
+                            <li>Responding to booking requests in a timely manner</li>
+                            <li>Delivering the tractor as per the booking details</li>
+                          </ul>
                         </div>
                       </div>
                     </div>
-
-                    <div className="sm:col-span-2">
-                      <label htmlFor="ownershipProof" className="block text-sm font-medium text-gray-700">
-                        Ownership Proof (Registration Certificate)
-                      </label>
-                      <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                        <div className="space-y-1 text-center">
-                          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="flex text-sm text-gray-600">
-                            <label
-                              htmlFor="document-upload"
-                              className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500"
-                            >
-                              <span>Upload a file</span>
-                              <input
-                                id="document-upload"
-                                name="document-upload"
-                                type="file"
-                                className="sr-only"
-                                onChange={handleDocumentChange}
-                                accept=".pdf,.jpg,.jpeg,.png"
-                              />
-                            </label>
-                            <p className="pl-1">or drag and drop</p>
-                          </div>
-                          <p className="text-xs text-gray-500">PDF, JPG, PNG up to 10MB</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Insurance Section */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-900 border-b pb-2">Insurance</h2>
-                  <div className="mt-6">
-                    <div className="relative flex items-start">
-                      <div className="flex items-center h-5">
-                        <input
-                          id="insuranceStatus"
-                          name="insuranceStatus"
-                          type="checkbox"
-                          checked={formData.insuranceStatus}
-                          onChange={handleInputChange}
-                          className="focus:ring-green-500 h-4 w-4 text-green-600 border-gray-300 rounded"
-                        />
-                      </div>
-                      <div className="ml-3 text-sm">
-                        <label htmlFor="insuranceStatus" className="font-medium text-gray-700">
-                          My tractor is insured
-                        </label>
-                        <p className="text-gray-500">
-                          Having insurance can increase your booking rate and provide peace of mind.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Terms and Conditions */}
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      <Info className="h-5 w-5 text-blue-400" />
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">Important Information</h3>
-                      <div className="mt-2 text-sm text-blue-700">
-                        <p>
-                          By registering your tractor, you agree to our <Link to="/terms" className="underline">Terms and Conditions</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>. 
-                          Our team will review your submission within 24-48 hours.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="pt-5">
-                  <div className="flex justify-end">
-                  <Link
-                      to="/tractor/my-tractors"
-                      className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                    >
-                      Cancel
-                    </Link>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className={`ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Processing...
-                        </>
-                      ) : (
-                        'Register Tractor'
-                      )}
-                    </button>
                   </div>
                 </div>
               </div>
-            </form>
-          </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex justify-between">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+              ) : (
+                <div></div>
+              )}
+
+              {step < 3 ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  Next
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-md flex items-center"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader className="animate-spin h-5 w-5 mr-2" />
+                      Registering...
+                    </>
+                  ) : (
+                    <>Register Tractor</>
+                  )}
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default RegisterTractor;
+export default RegisterTractor
+
