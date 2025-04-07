@@ -20,6 +20,7 @@ import CaseStudies from './components/resources/CaseStudies'
 import Blog from './components/resources/Blog'
 import Profile from './components/Profile'
 import WeatherForecast from './components/solutions/WeatherForecast'
+import Pricing from './components/pricing'
 
 
 export default function App() {
@@ -40,7 +41,7 @@ export default function App() {
           <Route path="/tractor/my-bookings" element={<BookingHistory/>}/>
           <Route path="/tractor/register-tractor" element={<RegisterTractor/>}/>
           <Route path="/solutions/weather-forecast" element={<WeatherForecast />} />
-
+          <Route path="/pricing" element={<Pricing/>}/>
           <Route path="/tractor/pricing" element={<TractorPricing/>}/>
           <Route path="/solutions/Sugarcane" element={<SugarcanePage/>}/>
           <Route path="/resources/blog" element={<Blog/>} />
