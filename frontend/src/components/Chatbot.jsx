@@ -1,32 +1,13 @@
 import React, { useState, useMemo } from 'react';
-// Temporarily disable the real import
-// import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Dummy implementation for temporary use
-class DummyGoogleGenerativeAI {
-  constructor(apiKey) {
-    console.warn('Using DummyGoogleGenerativeAI. Functionality is disabled temporarily.');
-  }
-  getGenerativeModel({ model }) {
-    return {
-      generateContent: async (input) => {
-        return {
-          response: {
-            text: () => 'This is a dummy response.',
-          },
-        };
-      },
-    };
-  }
-}
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
-  // Use the dummy class instead of the real one
-  const genAI = useMemo(() => new DummyGoogleGenerativeAI('dummy-api-key'), []);
+  // Initialize the Gemini model once using useMemo
+  const genAI = useMemo(() => new GoogleGenerativeAI('AIzaSyAEzjaczDEDCo7fuLi2Z01bKIhxGNj10qQ'), []);
   const model = useMemo(
     () => genAI.getGenerativeModel({ model: 'gemini-1.5-flash' }),
     [genAI]
@@ -34,9 +15,12 @@ const Chatbot = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Add user message using functional update to ensure state consistency
     setMessages((prev) => [...prev, { text: input, sender: 'user' }]);
 
     try {
+      // Generate response from Gemini Flash model
       const result = await model.generateContent(input);
       setMessages((prev) => [
         ...prev,
@@ -45,6 +29,7 @@ const Chatbot = () => {
     } catch (error) {
       console.error('Error generating response:', error);
     }
+
     setInput('');
   };
 
