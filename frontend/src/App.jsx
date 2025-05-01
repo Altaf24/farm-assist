@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+
 import Navbar from './components/NavBar'
 import Body from './components/Body'
 import SignUp from './components/SignUp'
@@ -21,6 +22,8 @@ import Blog from './components/resources/Blog'
 import Profile from './components/Profile'
 import WeatherForecast from './components/solutions/WeatherForecast'
 import Pricing from './components/pricing'
+import Contact from './components/Contact';
+import About from './components/About';
 
 
 export default function App() {
@@ -48,6 +51,8 @@ export default function App() {
           <Route path="/resources/case-studies" element={<CaseStudies/>} />
           <Route path="/resources/webinars" element={<Webinars/>} />
           <Route path="/profile" element={<Profile/>} />
+          <Route path="/contact" element={<Contact/>} />
+          <Route path="/about" element={<About/>} />
         </Routes>
    
     </>
